@@ -1,0 +1,8 @@
+query Rooms {
+  rooms {
+    id
+    createdAt
+    updatedAt
+    name
+  }
+}
