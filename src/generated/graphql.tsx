@@ -23,6 +23,12 @@ export type Query = {
 };
 
 
+export type QueryRoomsArgs = {
+  cursor?: Maybe<Scalars['Int']>;
+  limit: Scalars['Int'];
+};
+
+
 export type QueryRoomArgs = {
   id: Scalars['Int'];
 };
@@ -30,29 +36,32 @@ export type QueryRoomArgs = {
 export type Room = {
   __typename?: 'Room';
   id: Scalars['Int'];
-  createdAt: Scalars['DateTime'];
-  updatedAt: Scalars['DateTime'];
   name: Scalars['String'];
   code: Scalars['String'];
   status: Scalars['String'];
   turn: Scalars['Int'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
 };
 
 
 export type User = {
   __typename?: 'User';
   id: Scalars['Int'];
-  createdAt: Scalars['DateTime'];
-  updatedAt: Scalars['DateTime'];
   name: Scalars['String'];
   email: Scalars['String'];
+  roomId: Scalars['Float'];
+  room: Room;
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
   createRoom: Room;
-  updateRoom?: Maybe<Room>;
+  updateRoom: RoomResponse;
   deleteRoomById: Scalars['Boolean'];
+  leaveRoom: Scalars['Boolean'];
   changePassword: UserResponse;
   forgotPassword: Scalars['Boolean'];
   register: UserResponse;
@@ -67,8 +76,10 @@ export type MutationCreateRoomArgs = {
 
 
 export type MutationUpdateRoomArgs = {
-  name: Scalars['String'];
-  id: Scalars['Int'];
+  code?: Maybe<Scalars['String']>;
+  newJoinee?: Maybe<Scalars['Boolean']>;
+  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['Int']>;
 };
 
 
@@ -99,16 +110,22 @@ export type MutationLoginArgs = {
   usernameOrEmail: Scalars['String'];
 };
 
-export type UserResponse = {
-  __typename?: 'UserResponse';
+export type RoomResponse = {
+  __typename?: 'RoomResponse';
   errors?: Maybe<Array<FieldError>>;
-  user?: Maybe<User>;
+  room?: Maybe<Room>;
 };
 
 export type FieldError = {
   __typename?: 'FieldError';
   field: Scalars['String'];
   message: Scalars['String'];
+};
+
+export type UserResponse = {
+  __typename?: 'UserResponse';
+  errors?: Maybe<Array<FieldError>>;
+  user?: Maybe<User>;
 };
 
 export type UsernamePasswordInput = {
@@ -150,6 +167,19 @@ export type ChangePasswordMutation = (
   & { changePassword: (
     { __typename?: 'UserResponse' }
     & RegularUserResponseFragment
+  ) }
+);
+
+export type CreateRoomMutationVariables = Exact<{
+  name: Scalars['String'];
+}>;
+
+
+export type CreateRoomMutation = (
+  { __typename?: 'Mutation' }
+  & { createRoom: (
+    { __typename?: 'Room' }
+    & Pick<Room, 'name' | 'id'>
   ) }
 );
 
@@ -198,6 +228,28 @@ export type RegisterMutation = (
   ) }
 );
 
+export type UpdateRoomMutationVariables = Exact<{
+  id?: Maybe<Scalars['Int']>;
+  name?: Maybe<Scalars['String']>;
+  newJoinee?: Maybe<Scalars['Boolean']>;
+  code?: Maybe<Scalars['String']>;
+}>;
+
+
+export type UpdateRoomMutation = (
+  { __typename?: 'Mutation' }
+  & { updateRoom: (
+    { __typename?: 'RoomResponse' }
+    & { room?: Maybe<(
+      { __typename?: 'Room' }
+      & Pick<Room, 'name' | 'id' | 'status' | 'turn'>
+    )>, errors?: Maybe<Array<(
+      { __typename?: 'FieldError' }
+      & RegularErrorFragment
+    )>> }
+  ) }
+);
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -209,7 +261,10 @@ export type MeQuery = (
   )> }
 );
 
-export type RoomsQueryVariables = Exact<{ [key: string]: never; }>;
+export type RoomsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  cursor?: Maybe<Scalars['Int']>;
+}>;
 
 
 export type RoomsQuery = (
@@ -254,6 +309,18 @@ export const ChangePasswordDocument = gql`
 export function useChangePasswordMutation() {
   return Urql.useMutation<ChangePasswordMutation, ChangePasswordMutationVariables>(ChangePasswordDocument);
 };
+export const CreateRoomDocument = gql`
+    mutation CreateRoom($name: String!) {
+  createRoom(name: $name) {
+    name
+    id
+  }
+}
+    `;
+
+export function useCreateRoomMutation() {
+  return Urql.useMutation<CreateRoomMutation, CreateRoomMutationVariables>(CreateRoomDocument);
+};
 export const ForgotPasswordDocument = gql`
     mutation ForgotPassword($email: String!) {
   forgotPassword(email: $email)
@@ -294,6 +361,25 @@ export const RegisterDocument = gql`
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
 };
+export const UpdateRoomDocument = gql`
+    mutation UpdateRoom($id: Int, $name: String, $newJoinee: Boolean, $code: String) {
+  updateRoom(name: $name, id: $id, newJoinee: $newJoinee, code: $code) {
+    room {
+      name
+      id
+      status
+      turn
+    }
+    errors {
+      ...RegularError
+    }
+  }
+}
+    ${RegularErrorFragmentDoc}`;
+
+export function useUpdateRoomMutation() {
+  return Urql.useMutation<UpdateRoomMutation, UpdateRoomMutationVariables>(UpdateRoomDocument);
+};
 export const MeDocument = gql`
     query Me {
   me {
@@ -306,8 +392,8 @@ export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'q
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
 };
 export const RoomsDocument = gql`
-    query Rooms {
-  rooms {
+    query Rooms($limit: Int!, $cursor: Int) {
+  rooms(limit: $limit, cursor: $cursor) {
     id
     createdAt
     updatedAt

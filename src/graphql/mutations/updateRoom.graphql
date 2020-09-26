@@ -1,0 +1,19 @@
+mutation UpdateRoom(
+  $id: Int
+  $name: String
+  $newJoinee: Boolean
+  $code: String
+) {
+  updateRoom(name: $name, id: $id, newJoinee: $newJoinee, code: $code) {
+    room {
+      name
+      id
+      status
+      turn
+    }
+
+    errors {
+      ...RegularError
+    }
+  }
+}

@@ -31,7 +31,11 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     body = (
       <Flex>
         <Box mr={2}>{data.me.name}</Box>
-        <Button onClick={() => logout()} isLoading={logoutFetching}>
+        <Button
+          variantColor="tomato"
+          onClick={() => logout()}
+          isLoading={logoutFetching}
+        >
           Logout
         </Button>
       </Flex>
@@ -39,7 +43,7 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   }
 
   return (
-    <Flex bg="tomato" p={4}>
+    <Flex position="sticky" top={0} bg="tomato" p={4}>
       <Box ml={"auto"}>{body}</Box>
     </Flex>
   );

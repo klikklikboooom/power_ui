@@ -1,5 +1,5 @@
-query Rooms {
-  rooms {
+query Rooms($limit: Int!, $cursor: Int) {
+  rooms(limit: $limit, cursor: $cursor) {
     id
     createdAt
     updatedAt
