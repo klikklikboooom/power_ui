@@ -10,21 +10,20 @@ import {
   ModalFooter,
 } from "@chakra-ui/core";
 import { Formik, Form } from "formik";
-import { toErrorMap } from "../utils/toErrorMap";
+import { useCreateRoomMutation } from "../generated/graphql";
 import { InputField } from "./InputField";
-import { useUpdateRoomMutation } from "../generated/graphql";
 import { useRouter } from "next/router";
 
 interface ModalProps {}
 
-export const JoinGameModal: React.FC<ModalProps> = ({}) => {
+export const CreateGameModal: React.FC<ModalProps> = ({}) => {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [, updateRoom] = useUpdateRoomMutation();
+  const [, createRoom] = useCreateRoomMutation();
   return (
     <>
-      <Button float="right" onClick={onOpen}>
-        Join Game
+      <Button mr={5} ml="auto" onClick={onOpen}>
+        Create Game
       </Button>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay>
@@ -33,34 +32,31 @@ export const JoinGameModal: React.FC<ModalProps> = ({}) => {
             <ModalCloseButton />
             <ModalBody>
               <Formik
-                initialValues={{ code: "", id: -1, name: "" }}
-                onSubmit={async (values, { setErrors }) => {
-                  const response = await updateRoom(values);
-                  console.log(response);
-                  if (response.data!.updateRoom!.errors) {
-                    const errorMap = toErrorMap(
-                      response.data!.updateRoom!.errors
-                    );
-                    setErrors(errorMap);
-                  } else if (response.data!.updateRoom!.room) {
-                    router.push(`/room/${values.code}`);
+                initialValues={{ name: "" }}
+                onSubmit={async (values) => {
+                  const { error, data } = await createRoom(values);
+                  console.log(error);
+                  console.log("response", data?.createRoom);
+                  if (!error) {
+                    router.push(`/room/${data?.createRoom.code}`);
                   }
                 }}
               >
                 {({ isSubmitting }) => (
                   <Form>
                     <InputField
-                      label="Code"
-                      placeholder="Enter Code"
-                      name="code"
+                      label="Room Name"
+                      placeholder="Name your room (Optional)"
+                      name="name"
                     />
+
                     <Button
                       type="submit"
                       variantColor="teal"
                       mt={4}
                       isLoading={isSubmitting}
                     >
-                      Join Game
+                      Create Room
                     </Button>
                     <Button
                       variantColor="blue"

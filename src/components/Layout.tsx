@@ -1,5 +1,6 @@
 import { NavBar } from "./NavBar";
 import { Wrapper, WrapperVariant } from "./Wrapper";
+import { Fragment } from "react";
 
 interface LayoutProps {
   variant?: WrapperVariant;

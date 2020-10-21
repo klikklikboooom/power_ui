@@ -39,7 +39,7 @@ export type Room = {
   name: Scalars['String'];
   code: Scalars['String'];
   status: Scalars['String'];
-  turn: Scalars['Int'];
+  turn?: Maybe<Scalars['Int']>;
   createdAt: Scalars['DateTime'];
   updatedAt: Scalars['DateTime'];
 };
@@ -52,6 +52,8 @@ export type User = {
   email: Scalars['String'];
   roomId: Scalars['Float'];
   room: Room;
+  turn: Scalars['Float'];
+  playerStatus: Scalars['String'];
   createdAt: Scalars['DateTime'];
   updatedAt: Scalars['DateTime'];
 };
@@ -67,6 +69,11 @@ export type Mutation = {
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
+  startGame: Array<UserCards>;
+  putCardsDown: PutCardsDownResponse;
+  playCards: Array<UserCards>;
+  playFaceDownCards: Array<UserCards>;
+  pickUpFromPile: Array<UserCards>;
 };
 
 
@@ -85,6 +92,11 @@ export type MutationUpdateRoomArgs = {
 
 export type MutationDeleteRoomByIdArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationLeaveRoomArgs = {
+  roomId: Scalars['Float'];
 };
 
 
@@ -110,6 +122,34 @@ export type MutationLoginArgs = {
   usernameOrEmail: Scalars['String'];
 };
 
+
+export type MutationStartGameArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type MutationPutCardsDownArgs = {
+  cardIds: Array<Scalars['Int']>;
+  roomId: Scalars['Int'];
+};
+
+
+export type MutationPlayCardsArgs = {
+  cardIds: Array<Scalars['Int']>;
+  roomId: Scalars['Float'];
+};
+
+
+export type MutationPlayFaceDownCardsArgs = {
+  cardId: Scalars['Int'];
+  roomId: Scalars['Float'];
+};
+
+
+export type MutationPickUpFromPileArgs = {
+  roomId: Scalars['Int'];
+};
+
 export type RoomResponse = {
   __typename?: 'RoomResponse';
   errors?: Maybe<Array<FieldError>>;
@@ -132,6 +172,55 @@ export type UsernamePasswordInput = {
   email: Scalars['String'];
   username: Scalars['String'];
   password: Scalars['String'];
+};
+
+export type UserCards = {
+  __typename?: 'UserCards';
+  id: Scalars['Int'];
+  userId: Scalars['Int'];
+  cardId: Scalars['Int'];
+  type: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type PutCardsDownResponse = {
+  __typename?: 'PutCardsDownResponse';
+  userCards: Array<UserCards>;
+  status: Scalars['String'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  newCardsPlayed: UserCardsPoolResponse;
+  updateUserCardsDown: Array<UserCards>;
+};
+
+export type UserCardsPoolResponse = {
+  __typename?: 'UserCardsPoolResponse';
+  userCards: Array<UserCards>;
+  pool: Array<Pool>;
+  roomCards: Array<Cards>;
+};
+
+export type Pool = {
+  __typename?: 'Pool';
+  id: Scalars['Int'];
+  userId: Scalars['Int'];
+  cardId: Scalars['Int'];
+  roomId: Scalars['Int'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type Cards = {
+  __typename?: 'Cards';
+  id: Scalars['Int'];
+  value: Scalars['String'];
+  suit: Scalars['String'];
+  rank: Scalars['Int'];
+  createdAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime'];
 };
 
 export type RegularErrorFragment = (
@@ -179,7 +268,7 @@ export type CreateRoomMutation = (
   { __typename?: 'Mutation' }
   & { createRoom: (
     { __typename?: 'Room' }
-    & Pick<Room, 'name' | 'id'>
+    & Pick<Room, 'name' | 'id' | 'code'>
   ) }
 );
 
@@ -314,6 +403,7 @@ export const CreateRoomDocument = gql`
   createRoom(name: $name) {
     name
     id
+    code
   }
 }
     `;

@@ -8,6 +8,7 @@ import { Router } from "next/router";
 import { Rooms } from "../components/RoomList";
 import { useRouter } from "next/router";
 import { JoinGameModal } from "../components/joinGameModal";
+import { CreateGameModal } from "../components/CreateGameModal";
 
 const Index = () => {
   const router = useRouter();
@@ -24,9 +25,7 @@ const Index = () => {
     <Layout>
       <Flex align="left">
         <Heading>Power!</Heading>
-        <Button mr={5} ml="auto" onClick={() => router.push("/create-room")}>
-          Create Game
-        </Button>
+        <CreateGameModal />
         <JoinGameModal />
       </Flex>
 
